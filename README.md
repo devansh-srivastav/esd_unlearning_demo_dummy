@@ -14,7 +14,5 @@ As you change the code, you can see the changes in your localhost.
 
 ### Deployment
 
-- Push the code (app.py and requirements.txt) to your Github Repository
-- Login to https://share.streamlit.io/
-- Create a new project and link your GitHub repository.
-- Any change you make and push to GitHub will be automatically updated in the deplyment.
+- Push the code (app.py and requirements.txt) to this Github Repository
+- Any change you make and push to GitHub will be automatically updated in the deployment.
