@@ -1,5 +1,8 @@
 import streamlit as st
 
+if "page" not in st.session_state:
+    st.session_state.page = "main"
+
 theme_available = [
     "Abstractionism", "Artist_Sketch", "Blossom_Season", "Bricks", "Byzantine", "Cartoon",
     "Cold_Warm", "Color_Fantasy", "Comic_Etch", "Crayon", "Cubism", "Dadaism", "Dapple",
@@ -59,66 +62,17 @@ def generate_image_dummy(
 
 st.set_page_config(page_title="Unlearning Styles Demo (Dummy)", layout="wide")
 
-st.title("Machine Unlearning Demo - Styles and Objects (Dummy Version)")
-
-# ---------------------------------------------------------------------
-# Sidebar – model selection 
-# ---------------------------------------------------------------------
-
-st.sidebar.header("Model selection")
-
-model_family_options = []
-if original_display_name is not None:
-    model_family_options.append("Original")
-if theme_model_for:
-    model_family_options.append("Style Unlearned")
-if class_model_for:
-    model_family_options.append("Object Unlearned")
-if other_models:
-    model_family_options.append("Other")
-
-model_family = st.sidebar.radio(
-    "Which model family?",
-    model_family_options,
-    label_visibility="hidden",
-)
-
-selected_model_display_name = None
-
-if model_family == "Original":
-    st.sidebar.markdown(f"**Using Model:**  \n {original_display_name}")
-    selected_model_display_name = original_display_name
-
-elif model_family == "Style Unlearned":
-    available_theme_keys = sorted(theme_model_for.keys())
-    chosen_theme_model = st.sidebar.selectbox(
-        "Unlearned style model",
-        available_theme_keys,
-    )
-    selected_model_display_name = theme_model_for[chosen_theme_model]
-    st.sidebar.markdown(f"**Using Model:**  \n {selected_model_display_name}")
-
-elif model_family == "Object Unlearned":
-    available_class_keys = sorted(class_model_for.keys())
-    chosen_class_model = st.sidebar.selectbox(
-        "Unlearned object model",
-        available_class_keys,
-    )
-    selected_model_display_name = class_model_for[chosen_class_model]
-    st.sidebar.markdown(f"**Using Model:**  \n {selected_model_display_name}")
-
-elif model_family == "Other":
-    other_list = sorted(other_models)
-    selected_model_display_name = st.sidebar.selectbox(
-        "Other models",
-        other_list,
-    )
+st.title("Machine Unlearning Demo")
 
 # ---------------------------------------------------------------------
 # Sidebar – “Generation settings” 
 # ---------------------------------------------------------------------
 
-st.sidebar.header("Generation settings")
+st.sidebar.header("Additional Menu")
+
+if st.sidebar.button("Prompt for Unlearning"):
+    st.session_state.page = "unlearning_prompt"
+
 
 seed = st.sidebar.number_input("Random seed", value=256, step=1)
 # These are left here for UI continuity; they are not actually used
@@ -128,83 +82,173 @@ H = 512
 W = 512
 ddim_eta = 0.0
 
-st.sidebar.markdown(
-    "<sub>Note: In this dummy version, these settings do not affect the image.</sub>",
-    unsafe_allow_html=True,
-)
+if st.session_state.page == "main":
 
 # ---------------------------------------------------------------------
-# Prompt selection
+# Model selection 
 # ---------------------------------------------------------------------
 
-prompt_mode = st.radio(
-    "Prompt mode",
-    ["Preset Style/Object", "Free Text Prompt"],
-    horizontal=True,
-)
+    st.subheader("Model selection")
+    model_family_options = []
+    if original_display_name is not None:
+        model_family_options.append("Original")
+    if theme_model_for:
+        model_family_options.append("Style Unlearned")
+    if class_model_for:
+        model_family_options.append("Object Unlearned")
+    if other_models:
+        model_family_options.append("Other")
 
-if prompt_mode == "Preset Style/Object":
-    st.subheader("Style")
-    theme = st.pills("Choose style", theme_available)
-
-    st.subheader("Object")
-    object_class = st.pills("Choose object", class_available)
-
-    prompt = None
-    if theme and object_class:
-        prompt = f"A {object_class} image in {theme.replace('_', ' ')} style."
-else:
-    st.subheader("Free Text Prompt")
-    prompt = st.text_area(
-        "Enter your prompt",
-        placeholder="e.g., A beautiful sunset over mountains, digital art",
-        height=100,
+    model_family = st.radio(
+        "Choose a model for unlearning:",
+        model_family_options,
     )
-    theme = None
-    object_class = None
 
-st.markdown("---")
+    selected_model_display_name = "Original"
+    if model_family == "Style Unlearned":
+        available_theme_keys = sorted(theme_model_for.keys())
+        chosen_theme_model = st.selectbox(
+            "Unlearned style model",
+            available_theme_keys,
+        )
+        selected_model_display_name = theme_model_for[chosen_theme_model]
+        # st.markdown(f"**Using Model:**  \n {selected_model_display_name}")
 
-# ---------------------------------------------------------------------
-# Generate button 
-# ---------------------------------------------------------------------
+    elif model_family == "Object Unlearned":
+        available_class_keys = sorted(class_model_for.keys())
+        chosen_class_model = st.selectbox(
+            "Unlearned object model",
+            available_class_keys,
+        )
+        selected_model_display_name = class_model_for[chosen_class_model]
+        # st.markdown(f"**Using Model:**  \n {selected_model_display_name}")
 
-if st.button("Generate"):
-    if selected_model_display_name is None:
-        st.error("Please select a model in the sidebar.")
-    elif prompt_mode == "Preset Style/Object":
-        if theme is None:
-            st.error("Please select a style.")
-        elif object_class is None:
-            st.error("Please select an object.")
-        else:
-            with st.spinner("Fetching a random image from the internet..."):
-                image_url, used_prompt, used_model = generate_image_dummy(
-                    model_name=selected_model_display_name,
-                    prompt=prompt,
-                    seed=int(seed),
-                    H=int(H),
-                    W=int(W),
+    elif model_family == "Other":
+        other_list = sorted(other_models)
+        selected_model_display_name = st.selectbox(
+            "Other models",
+            other_list,
+        )
+
+    # ---------------------------------------------------------------------
+    # Prompt selection
+    # ---------------------------------------------------------------------
+    st.subheader("Prompt Type selection")
+
+    prompt_mode = st.radio(
+        "Choose a prompt type to generate an image:",
+        ["Preset Style/Object", "Free Text Prompt"],
+        horizontal=True,
+    )
+
+    if prompt_mode == "Preset Style/Object":
+        st.subheader("Style")
+        theme = st.pills("Choose style", theme_available)
+
+        st.subheader("Object")
+        object_class = st.pills("Choose object", class_available)
+
+        prompt = None
+        if theme and object_class:
+            prompt = f"A {object_class} image in {theme.replace('_', ' ')} style."
+    else:
+        st.subheader("Free Text Prompt")
+        prompt = st.text_area(
+            "Enter your prompt",
+            placeholder="e.g., A beautiful sunset over mountains, digital art",
+            height=100,
+        )
+        theme = None
+        object_class = None
+
+    st.markdown("---")
+
+    # ---------------------------------------------------------------------
+    # Generate button 
+    # ---------------------------------------------------------------------
+
+    if st.button("Generate"):
+        if selected_model_display_name is None:
+            st.error("Please select a model.")
+        elif prompt_mode == "Preset Style/Object":
+            if theme is None:
+                st.error("Please select a style.")
+            elif object_class is None:
+                st.error("Please select an object.")
+            else:
+                with st.spinner("Fetching a random image from the internet..."):
+                    image_url, used_prompt, used_model = generate_image_dummy(
+                        model_name=selected_model_display_name,
+                        prompt=prompt,
+                        seed=int(seed),
+                        H=int(H),
+                        W=int(W),
+                    )
+
+                st.image(
+                    image_url,
+                    caption=f"Model (dummy): {used_model} | Prompt: {used_prompt}",
+                )
+        else:  # Free Text Prompt mode
+            if not prompt or not prompt.strip():
+                st.error("Please enter a prompt.")
+            else:
+                with st.spinner("Fetching a random image from the internet..."):
+                    image_url, used_prompt, used_model = generate_image_dummy(
+                        model_name=selected_model_display_name,
+                        prompt=prompt.strip(),
+                        seed=int(seed),
+                        H=int(H),
+                        W=int(W),
+                    )
+
+                st.image(
+                    image_url,
+                    caption=f"Model (dummy): {used_model} | Prompt: {used_prompt}",
                 )
 
-            st.image(
-                image_url,
-                caption=f"Model (dummy): {used_model} | Prompt: {used_prompt}",
-            )
-    else:  # Free Text Prompt mode
-        if not prompt or not prompt.strip():
-            st.error("Please enter a prompt.")
-        else:
-            with st.spinner("Fetching a random image from the internet..."):
-                image_url, used_prompt, used_model = generate_image_dummy(
-                    model_name=selected_model_display_name,
-                    prompt=prompt.strip(),
-                    seed=int(seed),
-                    H=int(H),
-                    W=int(W),
-                )
+elif st.session_state.page == "unlearning_prompt":
+    st.subheader("Unlearning Instruction Prompt")
 
-            st.image(
-                image_url,
-                caption=f"Model (dummy): {used_model} | Prompt: {used_prompt}",
+    st.markdown(
+        """
+        Please provide an instruction describing what concept, style,
+        or object should be forgotten.
+        """
+    )
+
+    # ---- CENTERED CONTENT CONTAINER ----
+    content_col, _ = st.columns([3, 1])
+
+    with content_col:
+        # Text area
+        unlearning_prompt = st.text_area(
+            "",
+            placeholder="Example: unlearn the visual characteristics of Monet-style painting...",
+            height=120,
+        )
+
+        # Buttons row (same width as textarea)
+        left_btn_col, spacer, right_btn_col = st.columns([1, 6, 2])
+
+        with left_btn_col:
+            back = st.button("Back")
+
+        with right_btn_col:
+            submit = st.button(
+                "Submit",
+                use_container_width=True,
             )
+
+    # ---- LOGIC ----
+    if back:
+        st.session_state.page = "main"
+
+    if submit:
+        if not unlearning_prompt.strip():
+            st.error("Please enter an unlearning description.")
+        else:
+            st.success("Unlearning prompt submitted successfully.")
+            st.session_state.unlearning_prompt = unlearning_prompt
+
+
