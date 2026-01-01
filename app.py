@@ -62,7 +62,7 @@ def generate_image_dummy(
 
 st.set_page_config(page_title="Unlearning Styles Demo (Dummy)", layout="wide")
 
-st.title("Machine Unlearning Demo")
+
 
 # ---------------------------------------------------------------------
 # Sidebar – “Generation settings” 
@@ -83,7 +83,7 @@ W = 512
 ddim_eta = 0.0
 
 if st.session_state.page == "main":
-
+    st.title("Machine Unlearning Demo")
 # ---------------------------------------------------------------------
 # Model selection 
 # ---------------------------------------------------------------------
@@ -208,27 +208,31 @@ if st.session_state.page == "main":
                 )
 
 elif st.session_state.page == "unlearning_prompt":
-    st.subheader("Unlearning Instruction Prompt")
+    st.subheader("Prompts for Testing Machine Unlearning")
 
     st.markdown(
         """
-        Please provide an instruction describing what concept, style,
-        or object should be forgotten.
+        Please type in prompts that 
+        you would like to use for testing whether and how the machine unlearning worked
+        \\
+        OR\\
+        Imagine that your artwork was included in the training dataset for our AI models, and that we have devised a machine unlearning method to unlearn your style or any objects that are unique to your artwork. Please type in prompts that 
+        you would like to use for testing how the machine unlearning worked
         """
     )
 
-    # ---- CENTERED CONTENT CONTAINER ----
+    # ---- CONTENT CONTAINER ----
     content_col, _ = st.columns([3, 1])
 
     with content_col:
         # Text area
         unlearning_prompt = st.text_area(
             "",
-            placeholder="Example: unlearn the visual characteristics of Monet-style painting...",
+            placeholder="Add prompt here...",
             height=120,
         )
 
-        # Buttons row (same width as textarea)
+        # Buttons row 
         left_btn_col, spacer, right_btn_col = st.columns([1, 6, 2])
 
         with left_btn_col:
@@ -243,6 +247,7 @@ elif st.session_state.page == "unlearning_prompt":
     # ---- LOGIC ----
     if back:
         st.session_state.page = "main"
+        st.rerun()
 
     if submit:
         if not unlearning_prompt.strip():
