@@ -17,14 +17,13 @@ theme_available = [
 class_available = [
     "Architectures", "Bears", "Birds", "Butterfly", "Cats", "Dogs", "Fishes", "Flame", "Flowers",
     "Frogs", "Horses", "Human", "Jellyfish", "Rabbits", "Sandwiches", "Sea", "Statues", "Towers",
-    "Trees", "Waterfalls",
+    "Trees", "Waterfalls", "Mickey Mouse",
 ]
 
 # Dummy model “config” – just names to keep the UI structure
 original_display_name = "Original (dummy, no unlearning)"
 theme_model_for = {key: f"Style Unlearned (dummy): {key}" for key in theme_available}
-class_model_for = {key: f"Object Unlearned (dummy): {key}" for key in class_available}
-other_models = {"Mickey Mouse"}
+class_model_for = {key: f"Charachters Unlearned (dummy): {key}" for key in class_available}
 
 # -----------------------------------------------------------------------------
 # Dummy image generation – returns a random internet image URL
@@ -95,9 +94,7 @@ if st.session_state.page == "main":
     if theme_model_for:
         model_family_options.append("Style Unlearned")
     if class_model_for:
-        model_family_options.append("Object Unlearned")
-    if other_models:
-        model_family_options.append("Other")
+        model_family_options.append("Charachter Unlearned")
 
     model_family = st.radio(
         "Choose a model for unlearning:",
@@ -114,21 +111,15 @@ if st.session_state.page == "main":
         selected_model_display_name = theme_model_for[chosen_theme_model]
         # st.markdown(f"**Using Model:**  \n {selected_model_display_name}")
 
-    elif model_family == "Object Unlearned":
+    elif model_family == "Charachter Unlearned":
         available_class_keys = sorted(class_model_for.keys())
         chosen_class_model = st.selectbox(
-            "Unlearned object model",
+            "Unlearned Charachter model",
             available_class_keys,
         )
         selected_model_display_name = class_model_for[chosen_class_model]
         # st.markdown(f"**Using Model:**  \n {selected_model_display_name}")
 
-    elif model_family == "Other":
-        other_list = sorted(other_models)
-        selected_model_display_name = st.selectbox(
-            "Other models",
-            other_list,
-        )
 
     # ---------------------------------------------------------------------
     # Prompt selection
@@ -137,16 +128,16 @@ if st.session_state.page == "main":
 
     prompt_mode = st.radio(
         "Choose a prompt type to generate an image:",
-        ["Preset Style/Object", "Free Text Prompt"],
+        ["Preset Style/Charachter", "Free Text Prompt"],
         horizontal=True,
     )
 
-    if prompt_mode == "Preset Style/Object":
+    if prompt_mode == "Preset Style/Charachter":
         st.subheader("Style")
         theme = st.pills("Choose style", theme_available)
 
-        st.subheader("Object")
-        object_class = st.pills("Choose object", class_available)
+        st.subheader("Charachter")
+        object_class = st.pills("Choose Charachter", class_available)
 
         prompt = None
         if theme and object_class:
@@ -170,11 +161,11 @@ if st.session_state.page == "main":
     if st.button("Generate"):
         if selected_model_display_name is None:
             st.error("Please select a model.")
-        elif prompt_mode == "Preset Style/Object":
+        elif prompt_mode == "Preset Style/Charachter":
             if theme is None:
                 st.error("Please select a style.")
             elif object_class is None:
-                st.error("Please select an object.")
+                st.error("Please select an Charachter.")
             else:
                 with st.spinner("Fetching a random image from the internet..."):
                     image_url, used_prompt, used_model = generate_image_dummy(
@@ -216,7 +207,7 @@ elif st.session_state.page == "unlearning_prompt":
         you would like to use for testing whether and how the machine unlearning worked
         \\
         OR\\
-        Imagine that your artwork was included in the training dataset for our AI models, and that we have devised a machine unlearning method to unlearn your style or any objects that are unique to your artwork. Please type in prompts that 
+        Imagine that your artwork was included in the training dataset for our AI models, and that we have devised a machine unlearning method to unlearn your style or any Charachters that are unique to your artwork. Please type in prompts that 
         you would like to use for testing how the machine unlearning worked
         """
     )
